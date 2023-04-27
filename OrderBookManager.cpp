@@ -18,6 +18,8 @@
 #define CREATE_ORDER_SQL "INSERT INTO orderbook (ticker_symbol, side, amount, price, total) " \
 "values (?, ?, ?, ?, ?);"
 
+#define CANCEL_ORDER_SQL "DELETE FROM orderbook WHERE id = ?"
+
 namespace orderbook {
     OrderBookManager::OrderBookManager() {
         sqlite3_open(ORDER_BOOK_DB_FILE, &db);
@@ -36,6 +38,7 @@ namespace orderbook {
         int res = sqlite3_prepare_v2(db, CREATE_ORDER_SQL, std::string(CREATE_ORDER_SQL).size(), &stmt, nullptr);
         if (res) {
             std::cerr << "failed to prepare statement: " << sqlite3_errstr(res) << std::endl;
+            sqlite3_finalize(stmt);
             return;
         }
 
@@ -49,9 +52,30 @@ namespace orderbook {
         if (res != SQLITE_DONE) {
             std::cerr << "error executing statement: " << sqlite3_errstr(res) << std::endl;
             std::cerr << "error code " << res << std::endl;
+        } else {
+            new_order.id = sqlite3_last_insert_rowid(db);
         }
 
-        new_order.id = sqlite3_last_insert_rowid(db);
+        sqlite3_finalize(stmt);
+    }
+
+    void OrderBookManager::cancel_by_id(const int &id) {
+        sqlite3_stmt *stmt;
+        int res = sqlite3_prepare_v2(db, CANCEL_ORDER_SQL, std::string(CANCEL_ORDER_SQL).size(), &stmt, nullptr);
+        if (res) {
+            std::cerr << "failed to prepare statement: " << sqlite3_errstr(res) << std::endl;
+            sqlite3_finalize(stmt);
+            return;
+        }
+
+        sqlite3_bind_int(stmt, 1, id);
+
+        res = sqlite3_step(stmt);
+        if (res != SQLITE_DONE) {
+            std::cerr << "error executing statement: " << sqlite3_errstr(res) << std::endl;
+            std::cerr << "error code " << res << std::endl;
+        }
+
         sqlite3_finalize(stmt);
     }
 

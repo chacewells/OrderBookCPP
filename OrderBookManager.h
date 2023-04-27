@@ -20,6 +20,8 @@ namespace orderbook {
 
         void create(orderbook::Order &new_order);
 
+        void cancel_by_id(const int&);
+
         ~OrderBookManager();
     };
 
