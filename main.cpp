@@ -23,7 +23,7 @@ int main() {
 
     for (auto itr = orders_created.begin(); itr != orders_created.end(); itr += 2) {
         orderBookManager.cancel_by_id(itr->id);
-        std::cout << "canceled: " << itr->id << std::endl;
+        std::cout << "canceled: " << *itr << std::endl;
     }
 
     return 0;
