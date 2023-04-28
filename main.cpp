@@ -21,10 +21,14 @@ int main() {
         std::cout << "successfully created " << order << std::endl;
     }
 
-    for (auto itr = orders_created.begin(); itr != orders_created.end(); itr += 2) {
-        orderBookManager.cancel_by_id(itr->id);
-        std::cout << "canceled: " << *itr << std::endl;
-    }
+    std::cout << "TSLA order book:\n";
+    for (auto& o : orderBookManager.get_orders_by_symbol("TSLA"))
+        std::cout << o << std::endl;
+//
+//    for (auto itr = orders_created.begin(); itr != orders_created.end(); itr += 2) {
+//        orderBookManager.cancel_by_id(itr->id);
+//        std::cout << "canceled: " << *itr << std::endl;
+//    }
 
     return 0;
 }

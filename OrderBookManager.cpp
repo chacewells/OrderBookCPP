@@ -3,6 +3,7 @@
 //
 
 #include <iostream>
+#include <string>
 #include "OrderBookManager.h"
 
 #define ORDER_BOOK_DB_FILE "orderbook.sqlite3"
@@ -82,6 +83,33 @@ namespace orderbook {
     OrderBookManager::~OrderBookManager() {
         sqlite3_close(db);
         std::cout << "successfully closed db connection\n";
+    }
+
+    std::vector<Order> OrderBookManager::get_orders_by_symbol(const std::string &ticker_symbol) {
+        const std::string sql = "SELECT id, side, amount, price, total FROM orderbook WHERE ticker_symbol = ? "
+                                "ORDER BY total, side ASC";
+        sqlite3_stmt *stmt;
+        sqlite3_prepare_v2(db, sql.c_str(), sql.size(), &stmt, nullptr);
+        sqlite3_bind_text(stmt, 1, ticker_symbol.c_str(), ticker_symbol.size(), nullptr);
+
+        std::vector<Order> results;
+
+        int res;
+        res = sqlite3_step(stmt);
+        while (res != SQLITE_DONE) {
+            int id = sqlite3_column_int(stmt, 0);
+            std::string side {(char*)sqlite3_column_text(stmt, 1)};
+            int amount = sqlite3_column_int(stmt, 2);
+            double price = sqlite3_column_double(stmt, 3);
+            double total = sqlite3_column_double(stmt, 4);
+
+            results.push_back({id, ticker_symbol, side, amount, price, total});
+
+            res = sqlite3_step(stmt);
+        }
+
+        sqlite3_finalize(stmt);
+        return std::move(results);
     }
 
     std::ostream &operator<<(std::ostream &o, const Order &order) {

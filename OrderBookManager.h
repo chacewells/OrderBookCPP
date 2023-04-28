@@ -7,6 +7,7 @@
 
 #include <sqlite3.h>
 #include <string>
+#include <vector>
 
 namespace orderbook {
     struct Order;
@@ -17,10 +18,9 @@ namespace orderbook {
         OrderBookManager();
 
         int bootstrap_schema();
-
         void create(orderbook::Order &new_order);
-
         void cancel_by_id(const int&);
+        std::vector<Order> get_orders_by_symbol(const std::string& ticker_symbol);
 
         ~OrderBookManager();
     };
@@ -32,6 +32,11 @@ namespace orderbook {
         int amount;
         double price;
         double total;
+
+        Order(int i, std::string ts, std::string sd, int amt, double pr, double ttl) :
+                Order(ts, sd, amt, pr, ttl) {
+            id = i;
+        }
 
         Order(std::string ts, std::string sd, int amt, double pr, double ttl) :
                 ticker_symbol{ts},
