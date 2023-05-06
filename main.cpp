@@ -1,34 +1,44 @@
 #include <iostream>
-#include <vector>
-#include "OrderBookManager.h"
+#include "OrderSimulator.h"
+
+#define CMD_MAKE "make"
+#define CMD_SHOW "show"
+#define CMD_QUIT "q"
+
+using namespace std;
 
 int main() {
-    // get sqlite3 handle
-    orderbook::OrderBookManager orderBookManager;
-    orderBookManager.bootstrap_schema();
-    std::vector<std::string> symbols {"TSLA", "AMZN", "MSFT", "AAPL", "FB", "ORCL"};
-    std::vector<orderbook::Order> orders_created;
+    OrderSimulator sim = sp500();
+    OrderBookManager orderBookManager;
 
-    for (auto &s: symbols) {
-        orderbook::Order order (s, "buy", 2, 120, 240);
-        orderBookManager.create(order);
-        orders_created.push_back(order);
-        std::cout << "successfully created " << order << std::endl;
+    vector<Order> orders;
+    int n;
+    string command, symbol;
+    bool done = false;
 
-        order = {s, "sell", 2, 120, 240};
-        orderBookManager.create(order);
-        orders_created.push_back(order);
-        std::cout << "successfully created " << order << std::endl;
+    while (!done) {
+        cout << "Enter command (q to quit): ";
+        cin >> command;
+        if (command == CMD_MAKE) {
+            cin >> n;
+            orders = sim.random_orders(n);
+            orderBookManager.save_all(orders);
+
+            cout << "CREATED " << orders.size() << " ORDERS\n\n";
+        } else if (command == CMD_SHOW) {
+            cin >> symbol;
+            orders = orderBookManager.get_orders_by_symbol(symbol);
+            cout << symbol << " ORDERS\n\n";
+            for (const auto &order: orders)
+                cout << order << endl;
+            cout << endl;
+        } else if (command == CMD_QUIT) {
+            cout << "Bye!\n\n";
+            done = true;
+        } else {
+            cerr << "Uknown command\n\n";
+        }
     }
-
-    std::cout << "TSLA order book:\n";
-    for (auto& o : orderBookManager.get_orders_by_symbol("TSLA"))
-        std::cout << o << std::endl;
-//
-//    for (auto itr = orders_created.begin(); itr != orders_created.end(); itr += 2) {
-//        orderBookManager.cancel_by_id(itr->id);
-//        std::cout << "canceled: " << *itr << std::endl;
-//    }
 
     return 0;
 }
